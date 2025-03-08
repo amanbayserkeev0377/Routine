@@ -24,19 +24,22 @@ struct TodayView: View {
                     .onDelete(perform: deleteHabit)
                 }
                 .listStyle(.plain)
-                
-                Button(action: {
-                    showNewHabitView.toggle()
-                }) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
-                        .frame(width: 56, height: 56)
-                        .background(Color.black)
-                        .clipShape(Circle())
-                        .shadow(radius: 2)
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        showNewHabitView.toggle()
+                    }) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 48, height: 48)
+                            .background(Color.black)
+                            .clipShape(Circle())
+                            .shadow(radius: 2)
+                    }
+                    .padding(.trailing, 20)
+                    .padding(.bottom, 10)
                 }
-                .padding()
                 .sheet(isPresented: $showNewHabitView) {
                     NewHabitView()
                 }

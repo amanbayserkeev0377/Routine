@@ -6,7 +6,7 @@ struct NewHabitView: View {
     
     @State private var habitName: String = ""
     @State private var repeatFrequency: String = "Every day"
-    @State private var goalValue: Int = 1
+    @State private var goalValue: String = ""
     @State private var unit: String = "count"
     @State private var showSelectUnit = false
     
@@ -16,10 +16,8 @@ struct NewHabitView: View {
         NavigationView {
             VStack(spacing: 20) {
                 habitNameField()
+                goalInput()
                 repeatPicker()
-                goalSelection()
-                saveButton()
-                
                 Spacer()
             }
             .padding(.horizontal)
@@ -29,6 +27,14 @@ struct NewHabitView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .foregroundStyle(.black)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        saveHabit()
+                    }
+                    .foregroundStyle(.black)
+                    .disabled(habitName.isEmpty || goalValue.isEmpty)
                 }
             }
             .sheet(isPresented: $showSelectUnit) {
@@ -44,6 +50,27 @@ struct NewHabitView: View {
             .clipShape(RoundedRectangle(cornerRadius: 8))
     }
     
+    private func goalInput() -> some View {
+        HStack {
+            TextField("0", text: $goalValue)
+                .keyboardType(.decimalPad)
+                .multilineTextAlignment(.center)
+                .padding(.vertical, 10)
+                .frame(width: 50)
+                .background(Color(.systemGray6))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            
+            Button(action: { showSelectUnit.toggle() }) {
+                Text(unit)
+                    .foregroundColor(.black)
+                    .padding(.horizontal)
+                    .frame(width: 80, height: 40)
+                    .background(Color(.systemGray6))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+        }
+    }
+    
     private func repeatPicker() -> some View {
         Picker("Repeat", selection: $repeatFrequency) {
             ForEach(repeatOptions, id: \.self) { option in
@@ -51,23 +78,6 @@ struct NewHabitView: View {
             }
         }
         .pickerStyle(.segmented)
-    }
-    
-    private func goalSelection() -> some View {
-        HStack {
-            Stepper(value: $goalValue, in: 1...100) {
-                Text("Goal: \(goalValue)")
-            }
-            
-            Button(action: { showSelectUnit.toggle() }) {
-                Text(unit)
-                    .foregroundColor(.black)
-                    .padding(.horizontal)
-                    .frame(height: 30)
-                    .background(Color(.systemGray6))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-            }
-        }
     }
     
     private func saveButton() -> some View {
@@ -84,10 +94,12 @@ struct NewHabitView: View {
     }
     
     private func saveHabit() {
+        guard let goal = Int64(goalValue) else { return }
+        
         let newHabit = Habit(context: viewContext)
         newHabit.name = habitName
         newHabit.repeatFrequency = repeatFrequency
-        newHabit.goalValue = Int64(goalValue)
+        newHabit.goalValue = goal
         newHabit.unit = unit
         newHabit.timestamp = Date()
         newHabit.isCompleted = false

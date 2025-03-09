@@ -5,19 +5,19 @@ struct NewHabitView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var habitName: String = ""
-    @State private var repeatFrequency: String = "Every day"
     @State private var goalValue: String = ""
     @State private var unit: String = "count"
     @State private var showSelectUnit = false
+    @State private var activeDays: [String] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
     
-    let repeatOptions = ["Every day", "Every week", "Every month"]
+    let weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
     
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
                 habitNameField()
                 goalInput()
-                repeatPicker()
+                activeDaysSelector()
                 Spacer()
             }
             .padding(.horizontal)
@@ -34,7 +34,7 @@ struct NewHabitView: View {
                         saveHabit()
                     }
                     .foregroundStyle(.black)
-                    .disabled(habitName.isEmpty || goalValue.isEmpty)
+                    .disabled(habitName.isEmpty || goalValue.isEmpty || activeDays.isEmpty)
                 }
             }
             .sheet(isPresented: $showSelectUnit) {
@@ -71,38 +71,44 @@ struct NewHabitView: View {
         }
     }
     
-    private func repeatPicker() -> some View {
-        Picker("Repeat", selection: $repeatFrequency) {
-            ForEach(repeatOptions, id: \.self) { option in
-                Text(option).tag(option)
+    private func activeDaysSelector() -> some View {
+        VStack(alignment: .leading) {
+            Text("Active days")
+                .font(.headline)
+            HStack {
+                ForEach(weekDays, id: \.self) { day in
+                    Button(action: {
+                        toggleDaySelection(day)
+                    }) {
+                        Text(day)
+                            .frame(width: 40, height: 40)
+                            .background(activeDays.contains(day) ? Color.black : Color(.systemGray6))
+                            .foregroundStyle(activeDays.contains(day) ? .white : .black)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                }
             }
         }
-        .pickerStyle(.segmented)
     }
     
-    private func saveButton() -> some View {
-        Button(action: saveHabit) {
-            Text("Save")
-                .font(.headline)
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(habitName.isEmpty ? Color.gray : Color.black)
-                .clipShape(RoundedRectangle(cornerRadius: 10))
+    private func toggleDaySelection(_ day: String) {
+        if activeDays.contains(day) {
+            activeDays.removeAll { $0 == day }
+        } else {
+            activeDays.append(day)
         }
-        .disabled(habitName.isEmpty)
     }
-    
+
     private func saveHabit() {
         guard let goal = Int64(goalValue) else { return }
         
         let newHabit = Habit(context: viewContext)
         newHabit.name = habitName
-        newHabit.repeatFrequency = repeatFrequency
         newHabit.goalValue = goal
         newHabit.unit = unit
         newHabit.timestamp = Date()
         newHabit.isCompleted = false
+        newHabit.repeatFrequency = activeDays.joined(separator: ",")
         
         do {
             try viewContext.save()

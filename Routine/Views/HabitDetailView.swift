@@ -8,14 +8,11 @@ struct HabitDetailView: View {
     
     @State private var isTimerRunning = false
     @State private var remainingTime: Int = 0
-    @State private var elapsedTime: Int = 0
+    @State private var lastTimeValue: Int = 0
     @State private var timer: Timer?
-    @State private var currentValue: Int64
+    @State private var showTimePicker = false
+    @State private var selectedUnit = "min"
     
-    init(habit: Habit) {
-        self.habit = habit
-        _currentValue = State(initialValue: habit.goalValue)
-    }
     
     var body: some View {
         VStack(spacing: 20) {
@@ -43,6 +40,7 @@ struct HabitDetailView: View {
             
         }
         .padding()
+        .presentationDetents([.fraction(0.75)])
         .onAppear {
             setupTimer()
         }
@@ -52,54 +50,90 @@ struct HabitDetailView: View {
         ["min", "hr", "sec"].contains(habit.unit)
     }
     
-    private func counterView() -> some View {
-        VStack(spacing: 20) {
-            Text("\(currentValue) \(habit.unit ?? "")")
+    private func timerView() -> some View {
+        VStack(spacing: 15) {
+            CircularProgressView(progress: progress)
+            
+            Text("\(formattedTime(remainingTime))")
                 .font(.largeTitle)
                 .bold()
+                .padding()
             
-            HStack(spacing: 40) {
-                Button(action: decrementValue) {
+            HStack(spacing: 30) {
+                Button(action: decrementTime) {
                     Image(systemName: "minus.circle.fill")
-                        .font(.largeTitle)
-                        .foregroundStyle(currentValue > 0 ? .black : .gray)
-                }
-                .disabled(currentValue == 0)
-                
-                Button(action: incrementValue) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.largeTitle)
+                        .font(.system(size: 30))
                         .foregroundStyle(.black)
                 }
+                .disabled(remainingTime == 0)
+                
+                Button(action: toggleTimer) {
+                    Image(systemName: isTimerRunning ? "pause.circle.fill" : "play.circle.fill")
+                        .font(.system(size: 65))
+                        .foregroundStyle(.black)
+                }
+                
+                Button(action: incrementTime) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 30))
+                        .foregroundStyle(.black)
+                }
+            }
+            
+            HStack(spacing: 20) {
+                Button(action: { remainingTime = lastTimeValue }) {
+                    Image(systemName: "arrow.uturn.backward")
+                        .font(.system(size: 25))
+                        .foregroundStyle(.black)
+                }
+                
+                Button(action: { addTime(10) }) {
+                    Text("+10")
+                        .font(.headline)
+                        .padding()
+                        .frame(width: 65)
+                        .background(Color.black)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 15))
+                }
+                
+                Button(action: { addTime(30) }) {
+                    Text("+30")
+                        .font(.headline)
+                        .padding()
+                        .frame(width: 65)
+                        .background(Color.black)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 15))
+                }
+                
+                Button(action: { showTimePicker.toggle() }) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 25))
+                        .foregroundStyle(.black)
+                }
+            }
+            .sheet(isPresented: $showTimePicker) {
+                TimePickerView(selectedTime: $remainingTime, selectedUnit: $selectedUnit)
             }
         }
     }
     
-    private func incrementValue() {
-        currentValue += 1
-        saveHabitValue()
+    private func counterView() -> some View {
+        Text("Здесь UI для других типов привычек")
+            .font(.subheadline)
+            .foregroundStyle(.gray)
     }
     
-    private func decrementValue() {
-        if currentValue > 0 {
-            currentValue -= 1
-            saveHabitValue()
-        }
-    }
-    
-    private func saveHabitValue() {
-        habit.goalValue = currentValue
-        do {
-            try viewContext.save()
-        } catch {
-            print("Error saving value: \(error.localizedDescription)")
-        }
+    private var progress: CGFloat {
+        guard lastTimeValue > 0 else { return 0 }
+        return CGFloat(lastTimeValue - remainingTime) / CGFloat(lastTimeValue)
     }
     
     private func setupTimer() {
         if isTimeBasedHabit, let goal = Int(exactly: habit.goalValue) {
             remainingTime = goal * timeMultiplier(for: habit.unit ?? "min")
-            elapsedTime = 0
+            lastTimeValue = remainingTime
         }
     }
     
@@ -112,50 +146,19 @@ struct HabitDetailView: View {
         }
     }
     
-    private func timerView() -> some View {
-        VStack(spacing: 15) {
-            CircularProgressView(progress: progress)
-            
-            Text("\(formattedTime(remainingTime))")
-                .font(.largeTitle)
-                .bold()
-                .padding()
-            
-            HStack {
-                Button(action: startTimer) {
-                    Image(systemName: "play.circle.fill")
-                        .font(.largeTitle)
-                        .foregroundStyle(.black)
-                }
-                .disabled(isTimerRunning)
-                
-                Button(action: stopTimer) {
-                    Image(systemName: "stop.circle.fill")
-                        .font(.largeTitle)
-                        .foregroundStyle(.red)
-                }
-                .disabled(!isTimerRunning)
-            }
+    private func toggleTimer() {
+        isTimerRunning.toggle()
+        if isTimerRunning {
+            startTimer()
+        } else {
+            stopTimer()
         }
     }
     
-    private var progress: CGFloat {
-        guard remainingTime > 0 else { return 0 }
-        return CGFloat(elapsedTime) / CGFloat(remainingTime + elapsedTime)
-    }
-    
-    private func placeholderView() -> some View {
-        Text("There will be UI for other types of habits")
-            .font(.subheadline)
-            .foregroundStyle(.gray)
-    }
-    
     private func startTimer() {
-        isTimerRunning = true
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             if remainingTime > 0 {
                 remainingTime -= 1
-                elapsedTime += 1
             } else {
                 stopTimer()
             }
@@ -163,9 +166,22 @@ struct HabitDetailView: View {
     }
     
     private func stopTimer() {
-        isTimerRunning = false
         timer?.invalidate()
         timer = nil
+    }
+    
+    private func incrementTime() {
+        addTime(10)
+    }
+    
+    private func decrementTime() {
+        if remainingTime > 0 {
+            remainingTime -= 10
+        }
+    }
+    
+    private func addTime(_ seconds: Int) {
+        remainingTime += seconds
     }
     
     private func formattedTime(_ seconds: Int) -> String {
@@ -192,5 +208,14 @@ struct HabitDetailView: View {
 }
 
 #Preview {
-    HabitDetailView(habit: Habit())
+    let context = PersistenceController.preview.container.viewContext
+    let sampleHabit = Habit(context: context)
+    sampleHabit.name = "Reading"
+    sampleHabit.goalValue = 30
+    sampleHabit.unit = "min"
+    sampleHabit.isCompleted = false
+    sampleHabit.timestamp = Date()
+    
+    return HabitDetailView(habit: sampleHabit)
+        .environment(\.managedObjectContext, context)
 }

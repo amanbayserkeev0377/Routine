@@ -70,11 +70,23 @@ struct SelectUnitView: View {
                 .padding()
                 
                 if showTextField {
-                    TextField("Enter custom unit", text: $customUnit, onCommit: addCustomUnit)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .padding()
-                        .keyboardType(.default)
-                        .submitLabel(.done)
+                    HStack {
+                        TextField("Enter custom unit", text: $customUnit)
+                            .textFieldStyle(PlainTextFieldStyle())
+                            .padding()
+                            .frame(height: 44)
+                            .background(Color(.systemGray6))
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                        
+                        Button(action: addCustomUnit) {
+                            Image(systemName: "checkmark")
+                                .font(.title2)
+                                .foregroundStyle(customUnit.isEmpty ? .gray : .black)
+                        }
+                        .disabled(customUnit.isEmpty)
+                    }
+                    .padding(.horizontal)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
                 
                 Spacer()

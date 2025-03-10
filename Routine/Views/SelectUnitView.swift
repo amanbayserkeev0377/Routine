@@ -52,13 +52,13 @@ struct SelectUnitView: View {
                                         deleteCustomUnit(unit)
                                     }) {
                                         Image(systemName: "xmark")
-                                            .font(.footnote)
-                                            .foregroundStyle(.black)
-                                            .padding(5)
-                                            .background(Color.white.opacity(0.8))
+                                            .font(.system(size: 12, weight: .bold))
+                                            .foregroundStyle(.white)
+                                            .padding(4)
+                                            .background(Color.black)
                                             .clipShape(Circle())
                                     }
-                                    .offset(x: 8, y: -8)
+                                    .offset(x: 6, y: -6)
                                 }
                             }
                         }

@@ -82,10 +82,10 @@ struct NewHabitView: View {
                         toggleDaySelection(day)
                     }) {
                         Text(day)
-                            .frame(width: 40, height: 40)
+                            .frame(width: 45, height: 40)
                             .background(activeDays.contains(day) ? Color.black : Color(.systemGray6))
                             .foregroundStyle(activeDays.contains(day) ? .white : .black)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
                 }
             }

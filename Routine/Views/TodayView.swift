@@ -42,6 +42,7 @@ struct TodayView: View {
                 }
                 .sheet(isPresented: $showNewHabitView) {
                     NewHabitView()
+                        .presentationDetents([.medium])
                 }
             }
             .navigationTitle("Today")

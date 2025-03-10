@@ -39,6 +39,7 @@ struct NewHabitView: View {
             }
             .sheet(isPresented: $showSelectUnit) {
                 SelectUnitView(selectedUnit: $unit)
+                    .presentationDetents([.medium])
             }
         }
     }

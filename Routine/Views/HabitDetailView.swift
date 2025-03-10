@@ -60,12 +60,11 @@ struct HabitDetailView: View {
                 .padding()
             
             HStack(spacing: 30) {
-                Button(action: decrementTime) {
-                    Image(systemName: "minus.circle.fill")
-                        .font(.system(size: 30))
+                Button(action: { remainingTime = lastTimeValue }) {
+                    Image(systemName: "arrow.uturn.backward")
+                        .font(.system(size: 25))
                         .foregroundStyle(.black)
                 }
-                .disabled(remainingTime == 0)
                 
                 Button(action: toggleTimer) {
                     Image(systemName: isTimerRunning ? "pause.circle.fill" : "play.circle.fill")
@@ -73,18 +72,32 @@ struct HabitDetailView: View {
                         .foregroundStyle(.black)
                 }
                 
-                Button(action: incrementTime) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 30))
+                Button(action: { showTimePicker.toggle() }) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 25))
                         .foregroundStyle(.black)
                 }
             }
             
             HStack(spacing: 20) {
-                Button(action: { remainingTime = lastTimeValue }) {
-                    Image(systemName: "arrow.uturn.backward")
-                        .font(.system(size: 25))
-                        .foregroundStyle(.black)
+                Button(action: { subtractTime(30) }) {
+                    Text("-30")
+                        .font(.headline)
+                        .padding()
+                        .frame(width: 65)
+                        .background(Color.black)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 15))
+                }
+                
+                Button(action: { subtractTime(10) }) {
+                    Text("-10")
+                        .font(.headline)
+                        .padding()
+                        .frame(width: 65)
+                        .background(Color.black)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 15))
                 }
                 
                 Button(action: { addTime(10) }) {
@@ -107,11 +120,7 @@ struct HabitDetailView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 15))
                 }
                 
-                Button(action: { showTimePicker.toggle() }) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 25))
-                        .foregroundStyle(.black)
-                }
+                
             }
             .sheet(isPresented: $showTimePicker) {
                 TimePickerView(selectedTime: $remainingTime, selectedUnit: $selectedUnit)
@@ -170,17 +179,12 @@ struct HabitDetailView: View {
         timer = nil
     }
     
-    private func incrementTime() {
-        addTime(10)
-    }
-    
-    private func decrementTime() {
-        if remainingTime > 0 {
-            remainingTime -= 10
-        }
-    }
-    
     private func addTime(_ seconds: Int) {
+        remainingTime -= seconds
+        if remainingTime < 0 { remainingTime = 0 }
+    }
+    
+    private func subtractTime(_ seconds: Int) {
         remainingTime += seconds
     }
     
@@ -211,7 +215,7 @@ struct HabitDetailView: View {
     let context = PersistenceController.preview.container.viewContext
     let sampleHabit = Habit(context: context)
     sampleHabit.name = "Reading"
-    sampleHabit.goalValue = 30
+    sampleHabit.goalValue = 45
     sampleHabit.unit = "min"
     sampleHabit.isCompleted = false
     sampleHabit.timestamp = Date()

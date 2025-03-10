@@ -4,7 +4,7 @@ struct SelectUnitView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var selectedUnit: String
     
-    @State private var units = ["count", "steps", "min", "hr", "km", "mile", "sec", "ml", "oz", "Cal", "g", "mg", "drink"]
+    @State private var units = ["count", "cycles", "pages", "sec", "min", "hr", "steps", "mile", "km", "ml", "oz", "Сal", "mg", "g", "drink"]
     @State private var customUnits: [String] = UserDefaults.standard.stringArray(forKey: "customUnits") ?? []
     @State private var showTextField = false
     @State private var customUnit = ""
@@ -13,26 +13,11 @@ struct SelectUnitView: View {
     var body: some View {
         NavigationView {
             VStack {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 10) {
-                    
-                    // units
-                    ForEach(units, id: \.self) { unit in
-                        Button(action: {
-                            selectedUnit = unit
-                            dismiss()
-                        }) {
-                            Text(unit)
-                                .font(.headline)
-                                .foregroundStyle(selectedUnit == unit ? .white : .black)
-                                .frame(maxWidth: .infinity, minHeight: 40)
-                                .background(selectedUnit == unit ? Color.black : Color(.systemGray6))
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
-                    }
-                    
-                    // custom units
-                    ForEach(customUnits, id: \.self) { unit in
-                        HStack {
+                ScrollView {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 10) {
+                        
+                        // standart units
+                        ForEach(units, id: \.self) { unit in
                             Button(action: {
                                 selectedUnit = unit
                                 dismiss()
@@ -40,34 +25,57 @@ struct SelectUnitView: View {
                                 Text(unit)
                                     .font(.headline)
                                     .foregroundStyle(selectedUnit == unit ? .white : .black)
-                                    .frame(maxWidth: .infinity, minHeight: 40)
+                                    .frame(minWidth: 60, maxWidth: .infinity, minHeight: 40)
                                     .background(selectedUnit == unit ? Color.black : Color(.systemGray6))
                                     .clipShape(RoundedRectangle(cornerRadius: 10))
                             }
-                            
-                            if isEditing {
+                        }
+                        
+                        // custom units
+                        ForEach(customUnits, id: \.self) { unit in
+                            ZStack(alignment: .topTrailing) {
                                 Button(action: {
-                                    deleteCustomUnit(unit)
+                                    selectedUnit = unit
+                                    dismiss()
                                 }) {
-                                    Image(systemName: "trash")
-                                        .foregroundStyle(.red)
+                                    Text(unit)
+                                        .font(.headline)
+                                        .foregroundStyle(selectedUnit == unit ? .white : .black)
+                                        .padding()
+                                        .frame(minWidth: 60, maxWidth: .infinity, minHeight: 40)
+                                        .background(selectedUnit == unit ? Color.black : Color(.systemGray6))
+                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                }
+                                
+                                if isEditing {
+                                    Button(action: {
+                                        deleteCustomUnit(unit)
+                                    }) {
+                                        Image(systemName: "xmark")
+                                            .font(.footnote)
+                                            .foregroundStyle(.black)
+                                            .padding(5)
+                                            .background(Color.white.opacity(0.8))
+                                            .clipShape(Circle())
+                                    }
+                                    .offset(x: 8, y: -8)
                                 }
                             }
                         }
+                        
+                        Button(action: {
+                            showTextField.toggle()
+                        }) {
+                            Text("+")
+                                .font(.headline)
+                                .foregroundStyle(.black)
+                                .frame(minWidth: 60, maxWidth: .infinity, minHeight: 40)
+                                .background(Color(.systemGray6))
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
                     }
-                    
-                    Button(action: {
-                        showTextField.toggle()
-                    }) {
-                        Text("+")
-                            .font(.headline)
-                            .foregroundStyle(.black)
-                            .frame(maxWidth: .infinity, minHeight: 40)
-                            .background(Color(.systemGray6))
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                    }
+                    .padding()
                 }
-                .padding()
                 
                 if showTextField {
                     HStack {

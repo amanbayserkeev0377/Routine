@@ -57,7 +57,7 @@ struct NewHabitView: View {
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.center)
                 .padding(.vertical, 10)
-                .frame(width: 50)
+                .frame(width: 55)
                 .background(Color(.systemGray6))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             
@@ -65,7 +65,7 @@ struct NewHabitView: View {
                 Text(unit)
                     .foregroundColor(.black)
                     .padding(.horizontal)
-                    .frame(width: 80, height: 40)
+                    .frame(width: 90, height: 40)
                     .background(Color(.systemGray6))
                     .clipShape(RoundedRectangle(cornerRadius: 8))
             }
